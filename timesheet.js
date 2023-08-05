@@ -13,7 +13,6 @@ function compareFn(a, b) {
   }
 }
 
-
 const words = ['lorem', 'dolor', 'default'];
 
 // Fetch data from the API
@@ -30,16 +29,32 @@ fetch('https://operations-api.access-ci.org/wh2/cider/v1/access-allocated/')
 
     // Create an array of timesheet data
     const timesheetData = projects
-  .filter(project => project.latest_status_begin && project.latest_status_end)
-  .map(project => {
-    const randomWord = words[Math.floor(Math.random() * words.length)]
-    return[
-    project.latest_status_begin.slice(5, 7) + '/' + project.latest_status_begin.slice(0, 4),
-    project.latest_status_end.slice(5, 7) + '/' + project.latest_status_end.slice(0, 4),
-    project.resource_descriptive_name,randomWord
-  ]
-  
-});
+      .filter(project => project.latest_status_begin && project.latest_status_end)
+      .map(project => {
+        // Calculate the time difference between the end date and current date
+        const endDate = new Date(project.latest_status_end);
+        const currentDate = new Date();
+        const timeDiff = endDate.getTime() - currentDate.getTime();
+        const diffDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert to days
+
+        // Choose an element from the words array based on the time difference
+        let word;
+        if (diffDays <= 365) {
+          word = 'default';
+        } else if (diffDays <= 730) {
+          word = 'dolor';
+        } else {
+          word = 'lorem';
+        }
+
+        return [
+          project.latest_status_begin.slice(5, 7) + '/' + project.latest_status_begin.slice(0, 4),
+          project.latest_status_end.slice(5, 7) + '/' + project.latest_status_end.slice(0, 4),
+          project.resource_descriptive_name,
+          word
+        ];
+      });
+
     timesheetData.sort(compareFn);
 
     // Initialize the timesheet
